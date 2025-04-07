@@ -29,7 +29,11 @@ func Put(doc Document) bool {
 		return false
 	}
 
-	key := doc.Fields["key"].Value.(string)
+	key, ok := doc.Fields["key"].Value.(string)
+	if !ok {
+		println("value is not of string type")
+		return false
+	}
 	documents[key] = doc
 	return true
 }
