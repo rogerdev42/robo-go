@@ -1,6 +1,7 @@
 package documentstore
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 )
@@ -14,6 +15,8 @@ const (
 	DocumentFieldTypeArray  DocumentFieldType = "array"
 	DocumentFieldTypeObject DocumentFieldType = "object"
 )
+
+var ErrUnsupportedDocumentField = errors.New("unsupported focument field")
 
 type DocumentField struct {
 	Type  DocumentFieldType
@@ -48,7 +51,7 @@ func MarshalDocument(input any) (*Document, error) {
 		case reflect.Struct, reflect.Map:
 			docFieldType = DocumentFieldTypeObject
 		default:
-			return nil, fmt.Errorf("unsupported field type: %s", fieldType.Kind())
+			return nil, ErrUnsupportedDocumentField
 		}
 
 		document.Fields[key] = DocumentField{
@@ -123,7 +126,7 @@ func UnmarshalDocument(doc *Document, output any) error {
 				return fmt.Errorf("field %s type mismatch: expected object", fieldName)
 			}
 		default:
-			return fmt.Errorf("unsupported field type: %s", docField.Type)
+			return ErrUnsupportedDocumentField
 		}
 	}
 

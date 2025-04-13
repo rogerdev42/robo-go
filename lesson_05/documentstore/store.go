@@ -1,8 +1,15 @@
 package documentstore
 
+import "errors"
+
 type Store struct {
 	collections map[string]*Collection
 }
+
+var (
+	ErrCollectionAlreadyExists = errors.New("collection already exists")
+	ErrCollectionNotFound      = errors.New("collection not found")
+)
 
 func NewStore() *Store {
 	return &Store{
@@ -10,33 +17,30 @@ func NewStore() *Store {
 	}
 }
 
-func (s *Store) CreateCollection(name string, cfg *CollectionConfig) (bool, *Collection) {
+func (s *Store) CreateCollection(name string, cfg *CollectionConfig) (*Collection, error) {
 	if _, ok := s.collections[name]; ok {
-		println("collection already exists")
-		return false, nil
+		return nil, ErrCollectionAlreadyExists
 	}
 	s.collections[name] = &Collection{
 		cfg:       *cfg,
-		Documents: make(map[string]Document),
+		documents: make(map[string]Document),
 	}
-	return true, s.collections[name]
+	return s.collections[name], nil
 }
 
-func (s *Store) GetCollection(name string) (*Collection, bool) {
+func (s *Store) GetCollection(name string) (*Collection, error) {
 	if collection, ok := s.collections[name]; ok {
-		return collection, true
+		return collection, nil
 	} else {
-		println("collection does not exist")
-		return nil, false
+		return nil, ErrCollectionNotFound
 	}
 }
 
-func (s *Store) DeleteCollection(name string) bool {
+func (s *Store) DeleteCollection(name string) error {
 	if _, ok := s.collections[name]; !ok {
-		println("collection does not exist")
-		return false
+		return ErrCollectionNotFound
 
 	}
 	delete(s.collections, name)
-	return true
+	return nil
 }
