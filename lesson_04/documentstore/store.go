@@ -17,7 +17,7 @@ func (s *Store) CreateCollection(name string, cfg *CollectionConfig) (bool, *Col
 	}
 	s.collections[name] = &Collection{
 		cfg:       *cfg,
-		Documents: make(map[string]Document),
+		documents: make(map[string]Document),
 	}
 	return true, s.collections[name]
 }
