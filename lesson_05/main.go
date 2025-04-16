@@ -2,15 +2,11 @@ package main
 
 import (
 	"fmt"
-	"lesson_05/documentstore"
 	"lesson_05/users"
 )
 
 func main() {
-
-	store := documentstore.NewStore()
-	collection, _ := store.CreateCollection("users", &documentstore.CollectionConfig{PrimaryKey: "ID"})
-	userService := users.NewService(*collection)
+	userService := users.NewService()
 
 	userId := "1"
 	userName := "Alice"

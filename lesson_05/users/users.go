@@ -23,8 +23,10 @@ type Service struct {
 	coll documentstore.Collection
 }
 
-func NewService(coll documentstore.Collection) *Service {
-	return &Service{coll}
+func NewService() *Service {
+	store := documentstore.NewStore()
+	coll, _ := store.CreateCollection("users", &documentstore.CollectionConfig{PrimaryKey: "ID"})
+	return &Service{*coll}
 }
 
 func (s *Service) CreateUser(id, name string) (*User, error) {
