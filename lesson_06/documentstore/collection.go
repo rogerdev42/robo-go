@@ -1,6 +1,9 @@
 package documentstore
 
-import "errors"
+import (
+	"errors"
+	"log/slog"
+)
 
 type Collection struct {
 	cfg       CollectionConfig
@@ -21,18 +24,22 @@ var (
 func (s *Collection) Put(doc Document) error {
 	key, ok := doc.Fields[s.cfg.PrimaryKey]
 	if !ok || key.Type != DocumentFieldTypeString {
+		l.Error("document creation error: document with no primary key", slog.Any("document", doc))
 		return ErrDocumentNoPrimaryKey
 	}
 
 	pk, ok := key.Value.(string)
 	if !ok {
+		l.Error("document creation error: document with invalid primary key", slog.Any("PrimaryKey", key))
 		return ErrDocumentInvalidKeyType
 	}
 	if pk == "" {
+		l.Error("document creation error: document with empty key", slog.Any("document", doc))
 		return ErrDocumentEmptyPrimaryKey
 	}
 
 	s.documents[pk] = doc
+	l.Info("document created", slog.Any("PrimaryKey", key))
 	return nil
 }
 
@@ -45,6 +52,7 @@ func (s *Collection) Get(key string) (*Document, error) {
 
 func (s *Collection) Delete(key string) error {
 	if _, ok := s.documents[key]; !ok {
+		l.Error("document deletion error: document not found", slog.Any("PrimaryKey", key))
 		return ErrDocumentNotFound
 	}
 	delete(s.documents, key)
