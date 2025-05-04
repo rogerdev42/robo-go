@@ -19,7 +19,7 @@ func init() {
 		l.Warn("failed to open log file. stdout is used", slog.String("error", err.Error()))
 	} else {
 		l = slog.New(slog.NewJSONHandler(logFile, &slog.HandlerOptions{
-			Level: slog.LevelDebug,
+			Level: slog.LevelInfo,
 		}))
 	}
 }

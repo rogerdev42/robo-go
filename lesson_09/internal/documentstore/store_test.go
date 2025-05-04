@@ -1,7 +1,6 @@
 package documentstore
 
 import (
-	"lesson_09/pkg/bst"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -60,7 +59,6 @@ func TestStore_CreateCollection(t *testing.T) {
 					PrimaryKey: "id",
 				},
 				documents: make(map[string]Document),
-				indexes:   make(map[string]*bst.BinarySearchTree),
 			},
 			wantErr: false,
 		},

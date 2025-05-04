@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"lesson_09/pkg/bst"
 	"log/slog"
 	"os"
 )
@@ -35,10 +34,9 @@ func (s *Store) CreateCollection(name string, cfg *CollectionConfig) (*Collectio
 	s.collections[name] = &Collection{
 		cfg:       *cfg,
 		documents: make(map[string]Document),
-		indexes:   make(map[string]*bst.BinarySearchTree),
 	}
 	l.Info("collection created", slog.Any("name", name))
-	return s.collections[name], nil // Восстанавливаем каждый индекс
+	return s.collections[name], nil
 }
 
 func (s *Store) GetCollection(name string) (*Collection, error) {
@@ -69,17 +67,17 @@ func (s *Store) Dump() ([]byte, error) {
 	}
 
 	for name, collection := range s.collections {
+		var indexNames []string
+		if collection.indexes != nil {
+			for idxName := range collection.indexes {
+				indexNames = append(indexNames, idxName)
+			}
+		}
 		collectionDump := map[string]any{
 			"config":    collection.cfg,
 			"documents": collection.documents,
-			"indexes":   make(map[string][]string),
+			"indexes":   indexNames,
 		}
-
-		for indexName, tree := range collection.indexes {
-			values := tree.InorderTraversal() // Получаем все значения из дерева
-			collectionDump["indexes"].(map[string][]string)[indexName] = values
-		}
-
 		dump["collections"].(map[string]any)[name] = collectionDump
 	}
 
@@ -96,7 +94,7 @@ func NewStoreFromDump(dump []byte) (*Store, error) {
 		Collections map[string]struct {
 			Config    CollectionConfig    `json:"config"`
 			Documents map[string]Document `json:"documents"`
-			Indexes   map[string][]string `json:"indexes"`
+			Indexes   []string            `json:"indexes"`
 		} `json:"collections"`
 	}
 
@@ -109,24 +107,14 @@ func NewStoreFromDump(dump []byte) (*Store, error) {
 		collections: make(map[string]*Collection),
 	}
 
-	for name, collData := range data.Collections {
+	for name, data := range data.Collections {
 		collection := &Collection{
-			cfg:       collData.Config,
-			documents: collData.Documents,
-			indexes:   make(map[string]*bst.BinarySearchTree),
+			cfg:       data.Config,
+			documents: data.Documents,
 		}
-
-		for indexName, values := range collData.Indexes {
-			tree := bst.NewBST()
-			for _, value := range values {
-				err := tree.Insert(value)
-				if err != nil {
-					return nil, fmt.Errorf("failed to restore index %s: %w", indexName, err)
-				}
-			}
-			collection.indexes[indexName] = tree
+		for _, idxName := range data.Indexes {
+			_ = collection.CreateIndex(idxName)
 		}
-
 		store.collections[name] = collection
 	}
 
