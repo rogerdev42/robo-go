@@ -154,12 +154,11 @@ func (s *Collection) CreateIndex(fieldName string) error {
 }
 
 func (s *Collection) DeleteIndex(fieldName string) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	if s.indexes == nil {
 		return ErrIndexNotFound
 	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if _, exists := s.indexes[fieldName]; !exists {
 		return ErrIndexNotFound
 	}

@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sync"
 )
 
 type Store struct {
 	collections map[string]*Collection
+	mu          sync.RWMutex
 }
 
 var (
@@ -27,6 +29,8 @@ func NewStore() *Store {
 }
 
 func (s *Store) CreateCollection(name string, cfg *CollectionConfig) (*Collection, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if _, ok := s.collections[name]; ok {
 		l.Error("collection creation error: collection already exists", slog.Any("name", name))
 		return nil, ErrCollectionAlreadyExists
@@ -40,6 +44,8 @@ func (s *Store) CreateCollection(name string, cfg *CollectionConfig) (*Collectio
 }
 
 func (s *Store) GetCollection(name string) (*Collection, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	if collection, ok := s.collections[name]; ok {
 		return collection, nil
 	} else {
@@ -48,6 +54,8 @@ func (s *Store) GetCollection(name string) (*Collection, error) {
 }
 
 func (s *Store) DeleteCollection(name string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if _, ok := s.collections[name]; !ok {
 		l.Error("collection deletion error: collection not found", slog.Any("name", name))
 		return ErrCollectionNotFound
@@ -57,11 +65,9 @@ func (s *Store) DeleteCollection(name string) error {
 }
 
 func (s *Store) Dump() ([]byte, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 
-	l.Info("hello dumping store", slog.Attr{
-		Key:   "qwe",
-		Value: slog.AnyValue(56),
-	})
 	dump := map[string]any{
 		"collections": make(map[string]any),
 	}
@@ -69,6 +75,7 @@ func (s *Store) Dump() ([]byte, error) {
 	for name, collection := range s.collections {
 		var indexNames []string
 		if collection.indexes != nil {
+			indexNames = make([]string, 0, len(collection.indexes))
 			for idxName := range collection.indexes {
 				indexNames = append(indexNames, idxName)
 			}
