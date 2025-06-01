@@ -1,0 +1,50 @@
+package middleware
+
+import (
+	"module_6/internal/logger"
+
+	"github.com/gofiber/fiber/v3"
+)
+
+// ErrorHandler создает middleware для обработки ошибок
+func ErrorHandler(log logger.Logger) fiber.ErrorHandler {
+	return func(c fiber.Ctx, err error) error {
+		code := fiber.StatusInternalServerError
+		message := "Internal Server Error"
+
+		if e, ok := err.(*fiber.Error); ok {
+			code = e.Code
+			message = e.Message
+		}
+
+		log.Error("HTTP error",
+			logger.Int("status", code),
+			logger.String("path", c.Path()),
+			logger.String("method", c.Method()),
+			logger.Error(err),
+		)
+
+		return c.Status(code).JSON(fiber.Map{
+			"error": fiber.Map{
+				"code":    getErrorCode(code),
+				"message": message,
+			},
+		})
+	}
+}
+
+// getErrorCode возвращает код ошибки по HTTP статусу
+func getErrorCode(status int) string {
+	switch status {
+	case fiber.StatusBadRequest:
+		return "VALIDATION_ERROR"
+	case fiber.StatusUnauthorized:
+		return "UNAUTHORIZED"
+	case fiber.StatusForbidden:
+		return "FORBIDDEN"
+	case fiber.StatusNotFound:
+		return "NOT_FOUND"
+	default:
+		return "INTERNAL_ERROR"
+	}
+}
