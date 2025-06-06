@@ -8,32 +8,32 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// ResponseHelper помощник для стандартизированных ответов
+// ResponseHelper provides standardized responses
 type ResponseHelper struct {
 	logger logger.Logger
 }
 
-// NewResponseHelper создает новый helper
+// NewResponseHelper creates new helper
 func NewResponseHelper(log logger.Logger) *ResponseHelper {
 	return &ResponseHelper{logger: log}
 }
 
-// Success отправляет успешный ответ
+// Success sends successful response
 func (h *ResponseHelper) Success(c fiber.Ctx, data interface{}) error {
 	return c.JSON(data)
 }
 
-// Created отправляет ответ о создании ресурса
+// Created sends resource creation response
 func (h *ResponseHelper) Created(c fiber.Ctx, data interface{}) error {
 	return c.Status(fiber.StatusCreated).JSON(data)
 }
 
-// NoContent отправляет ответ без содержимого
+// NoContent sends no content response
 func (h *ResponseHelper) NoContent(c fiber.Ctx) error {
 	return c.Status(fiber.StatusNoContent).Send(nil)
 }
 
-// HandleServiceError обрабатывает ошибки из сервисов
+// HandleServiceError handles service layer errors
 func (h *ResponseHelper) HandleServiceError(c fiber.Ctx, err error) error {
 	log := getLogger(c, h.logger)
 
@@ -59,17 +59,16 @@ func (h *ResponseHelper) HandleServiceError(c fiber.Ctx, err error) error {
 	}
 }
 
-// BadRequest отправляет ответ о некорректном запросе
+// BadRequest sends bad request response
 func (h *ResponseHelper) BadRequest(c fiber.Ctx, message string) error {
 	return h.errorResponse(c, fiber.StatusBadRequest, "VALIDATION_ERROR", message)
 }
 
-// Unauthorized отправляет ответ об отсутствии авторизации
+// Unauthorized sends unauthorized response
 func (h *ResponseHelper) Unauthorized(c fiber.Ctx, message string) error {
 	return h.errorResponse(c, fiber.StatusUnauthorized, "UNAUTHORIZED", message)
 }
 
-// errorResponse создает стандартный ответ с ошибкой
 func (h *ResponseHelper) errorResponse(c fiber.Ctx, status int, code, message string) error {
 	return c.Status(status).JSON(models.ErrorResponse{
 		Error: models.ErrorDetail{

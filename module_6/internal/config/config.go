@@ -10,7 +10,7 @@ import (
 type Config struct {
 	// Server
 	Port string
-	Env  string // development, production
+	Env  string
 
 	// Database
 	DBHost     string
@@ -26,40 +26,34 @@ type Config struct {
 	// Logging
 	LogLevel  string
 	LogFormat string
-	LogOutput string // stdout, stderr или путь к файлу
+	LogOutput string
 }
 
-// Load загружает конфигурацию из переменных окружения
+// Load loads configuration from environment variables
 func Load() (*Config, error) {
 	cfg := &Config{
-		// Server defaults
 		Port: getEnv("PORT", "8080"),
 		Env:  getEnv("ENV", "development"),
 
-		// Database
 		DBHost:     getEnv("DB_HOST", "localhost"),
 		DBPort:     getEnv("DB_PORT", "5432"),
 		DBUser:     getEnv("DB_USER", "postgres"),
 		DBPassword: getEnv("DB_PASSWORD", "postgres"),
 		DBName:     getEnv("DB_NAME", "notes_db"),
 
-		// JWT
 		JWTSecret: getEnv("JWT_SECRET", ""),
 
-		// Logging
 		LogLevel:  getEnv("LOG_LEVEL", "info"),
 		LogFormat: getEnv("LOG_FORMAT", "json"),
 		LogOutput: getEnv("LOG_OUTPUT", "stdout"),
 	}
 
-	// Парсим JWT_EXPIRE_HOURS
 	expireHours, err := strconv.Atoi(getEnv("JWT_EXPIRE_HOURS", "24"))
 	if err != nil {
 		return nil, fmt.Errorf("invalid JWT_EXPIRE_HOURS: %w", err)
 	}
 	cfg.JWTExpireHours = expireHours
 
-	// Валидация обязательных полей
 	if err := cfg.validate(); err != nil {
 		return nil, err
 	}
@@ -67,7 +61,6 @@ func Load() (*Config, error) {
 	return cfg, nil
 }
 
-// validate проверяет обязательные поля конфигурации
 func (c *Config) validate() error {
 	if c.JWTSecret == "" {
 		return fmt.Errorf("JWT_SECRET is required")
@@ -90,7 +83,7 @@ func (c *Config) validate() error {
 	return nil
 }
 
-// DatabaseDSN возвращает строку подключения к БД
+// DatabaseDSN returns database connection string
 func (c *Config) DatabaseDSN() string {
 	return fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
@@ -98,7 +91,6 @@ func (c *Config) DatabaseDSN() string {
 	)
 }
 
-// getEnv получает значение переменной окружения или возвращает значение по умолчанию
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value

@@ -13,12 +13,12 @@ var (
 	instance *validator.Validate
 )
 
-// Get возвращает singleton экземпляр валидатора
+// Get returns singleton validator instance
 func Get() *validator.Validate {
 	once.Do(func() {
 		instance = validator.New()
 
-		// Используем json теги как имена полей в ошибках
+		// Use JSON tags as field names in errors
 		instance.RegisterTagNameFunc(func(fld reflect.StructField) string {
 			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
 			if name == "-" {
@@ -27,13 +27,13 @@ func Get() *validator.Validate {
 			return name
 		})
 
-		// Кастомный валидатор для имени пользователя
+		// Custom username validator
 		instance.RegisterValidation("username", func(fl validator.FieldLevel) bool {
 			username := fl.Field().String()
 			if len(username) < 3 || len(username) > 50 {
 				return false
 			}
-			// Разрешаем только буквы, цифры и подчеркивания
+			// Allow only letters, numbers and underscores
 			for _, char := range username {
 				if !((char >= 'a' && char <= 'z') ||
 					(char >= 'A' && char <= 'Z') ||
@@ -49,12 +49,12 @@ func Get() *validator.Validate {
 	return instance
 }
 
-// Validate выполняет валидацию структуры
+// Validate validates a struct
 func Validate(s interface{}) error {
 	return Get().Struct(s)
 }
 
-// ValidateVar валидирует отдельную переменную
+// ValidateVar validates a single variable
 func ValidateVar(field interface{}, tag string) error {
 	return Get().Var(field, tag)
 }

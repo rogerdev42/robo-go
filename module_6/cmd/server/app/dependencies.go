@@ -6,7 +6,7 @@ import (
 	"module_6/internal/services"
 )
 
-// Dependencies содержит все зависимости приложения
+// Dependencies contains all application dependencies
 type Dependencies struct {
 	// Repositories
 	UserRepo     repository.UserRepository
@@ -24,21 +24,18 @@ type Dependencies struct {
 	NoteHandler     *handlers.NoteHandler
 }
 
-// initDependencies инициализирует все зависимости приложения
+// initDependencies initializes all application dependencies
 func (a *App) initDependencies() *Dependencies {
 	deps := &Dependencies{}
 
-	// Инициализируем репозитории
 	deps.UserRepo = repository.NewUserRepository(a.database.DB)
 	deps.CategoryRepo = repository.NewCategoryRepository(a.database.DB)
 	deps.NoteRepo = repository.NewNoteRepository(a.database.DB)
 
-	// Инициализируем сервисы
 	deps.AuthService = services.NewAuthService(deps.UserRepo, a.config, a.logger)
 	deps.CategoryService = services.NewCategoryService(deps.CategoryRepo, a.logger)
 	deps.NoteService = services.NewNoteService(deps.NoteRepo, deps.CategoryRepo, a.logger)
 
-	// Инициализируем хендлеры
 	deps.AuthHandler = handlers.NewAuthHandler(deps.AuthService, a.logger)
 	deps.CategoryHandler = handlers.NewCategoryHandler(deps.CategoryService, a.logger)
 	deps.NoteHandler = handlers.NewNoteHandler(deps.NoteService, a.logger)

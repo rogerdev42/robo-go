@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// getLogger получает логгер из контекста или возвращает дефолтный
+// getLogger gets logger from context or returns default
 func getLogger(c fiber.Ctx, defaultLogger logger.Logger) logger.Logger {
 	if log, ok := c.Locals("logger").(logger.Logger); ok {
 		return log
@@ -15,7 +15,7 @@ func getLogger(c fiber.Ctx, defaultLogger logger.Logger) logger.Logger {
 	return defaultLogger
 }
 
-// HealthCheck обработчик для проверки состояния приложения
+// HealthCheck handles application health check
 func HealthCheck(c fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status": "ok",
@@ -23,14 +23,14 @@ func HealthCheck(c fiber.Ctx) error {
 	})
 }
 
-// BaseHandler базовый handler с общими зависимостями
+// BaseHandler contains common handler dependencies
 type BaseHandler struct {
 	logger         logger.Logger
 	responseHelper *ResponseHelper
 	paramsHelper   *ParamsHelper
 }
 
-// NewBaseHandler создает базовый handler
+// NewBaseHandler creates base handler
 func NewBaseHandler(log logger.Logger) *BaseHandler {
 	responseHelper := NewResponseHelper(log)
 	paramsHelper := NewParamsHelper(responseHelper)

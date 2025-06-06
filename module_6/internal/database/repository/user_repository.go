@@ -7,17 +7,14 @@ import (
 	"module_6/internal/models"
 )
 
-// UserRepository реализация репозитория для работы с пользователями
 type userRepository struct {
 	db *sql.DB
 }
 
-// NewUserRepository создает новый экземпляр UserRepository
 func NewUserRepository(db *sql.DB) UserRepository {
 	return &userRepository{db: db}
 }
 
-// Create создает нового пользователя
 func (r *userRepository) Create(ctx context.Context, user *models.User) error {
 	query := `
 		INSERT INTO users (email, name, password_hash) 
@@ -29,7 +26,6 @@ func (r *userRepository) Create(ctx context.Context, user *models.User) error {
 		Scan(&user.ID, &user.CreatedAt)
 
 	if err != nil {
-		// Проверяем на уникальность email или name
 		if isUniqueViolation(err) {
 			return models.ErrAlreadyExists
 		}
@@ -39,7 +35,6 @@ func (r *userRepository) Create(ctx context.Context, user *models.User) error {
 	return nil
 }
 
-// GetByID получает пользователя по ID
 func (r *userRepository) GetByID(ctx context.Context, id int) (*models.User, error) {
 	user := &models.User{}
 	query := `
@@ -66,7 +61,6 @@ func (r *userRepository) GetByID(ctx context.Context, id int) (*models.User, err
 	return user, nil
 }
 
-// GetByEmail получает пользователя по email
 func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	user := &models.User{}
 	query := `
@@ -93,7 +87,6 @@ func (r *userRepository) GetByEmail(ctx context.Context, email string) (*models.
 	return user, nil
 }
 
-// GetByName получает пользователя по имени
 func (r *userRepository) GetByName(ctx context.Context, name string) (*models.User, error) {
 	user := &models.User{}
 	query := `
@@ -120,7 +113,6 @@ func (r *userRepository) GetByName(ctx context.Context, name string) (*models.Us
 	return user, nil
 }
 
-// Update обновляет данные пользователя
 func (r *userRepository) Update(ctx context.Context, user *models.User) error {
 	query := `
 		UPDATE users 
@@ -150,7 +142,6 @@ func (r *userRepository) Update(ctx context.Context, user *models.User) error {
 	return nil
 }
 
-// Delete удаляет пользователя
 func (r *userRepository) Delete(ctx context.Context, id int) error {
 	query := `DELETE FROM users WHERE id = $1`
 

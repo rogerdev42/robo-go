@@ -10,13 +10,13 @@ import (
 	"strings"
 )
 
-// SlogLogger реализация Logger через slog
+// SlogLogger implements Logger using slog
 type SlogLogger struct {
 	logger *slog.Logger
-	file   *os.File // для закрытия файла если используется
+	file   *os.File
 }
 
-// NewSlogLogger создает новый логгер на основе slog
+// NewSlogLogger creates a new slog-based logger
 func NewSlogLogger(level, format, output string) (LoggerWithCloser, error) {
 	var logLevel slog.Level
 	switch strings.ToLower(level) {
@@ -33,12 +33,10 @@ func NewSlogLogger(level, format, output string) (LoggerWithCloser, error) {
 	}
 
 	opts := &slog.HandlerOptions{
-		Level: logLevel,
-		// Добавляем источник вызова в development режиме
+		Level:     logLevel,
 		AddSource: level == "debug",
 	}
 
-	// Определяем куда писать логи
 	var writer io.Writer
 	var file *os.File
 
@@ -48,14 +46,11 @@ func NewSlogLogger(level, format, output string) (LoggerWithCloser, error) {
 	case "stderr":
 		writer = os.Stderr
 	default:
-		// Это путь к файлу
-		// Создаем директорию если не существует
 		dir := filepath.Dir(output)
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			return nil, fmt.Errorf("failed to create log directory: %w", err)
 		}
 
-		// Открываем файл для записи
 		f, err := os.OpenFile(output, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open log file: %w", err)
@@ -77,7 +72,6 @@ func NewSlogLogger(level, format, output string) (LoggerWithCloser, error) {
 	}, nil
 }
 
-// Close закрывает файл логов если он используется
 func (l *SlogLogger) Close() error {
 	if l.file != nil {
 		return l.file.Close()
@@ -85,27 +79,22 @@ func (l *SlogLogger) Close() error {
 	return nil
 }
 
-// Debug логирует сообщение уровня DEBUG
 func (l *SlogLogger) Debug(msg string, fields ...Field) {
 	l.log(slog.LevelDebug, msg, fields...)
 }
 
-// Info логирует сообщение уровня INFO
 func (l *SlogLogger) Info(msg string, fields ...Field) {
 	l.log(slog.LevelInfo, msg, fields...)
 }
 
-// Warn логирует сообщение уровня WARN
 func (l *SlogLogger) Warn(msg string, fields ...Field) {
 	l.log(slog.LevelWarn, msg, fields...)
 }
 
-// Error логирует сообщение уровня ERROR
 func (l *SlogLogger) Error(msg string, fields ...Field) {
 	l.log(slog.LevelError, msg, fields...)
 }
 
-// With создает новый логгер с дополнительными полями
 func (l *SlogLogger) With(fields ...Field) Logger {
 	args := make([]any, 0, len(fields)*2)
 	for _, f := range fields {
@@ -113,11 +102,10 @@ func (l *SlogLogger) With(fields ...Field) Logger {
 	}
 	return &SlogLogger{
 		logger: l.logger.With(args...),
-		file:   l.file, // передаем ссылку на файл
+		file:   l.file,
 	}
 }
 
-// log внутренний метод для логирования
 func (l *SlogLogger) log(level slog.Level, msg string, fields ...Field) {
 	attrs := make([]slog.Attr, len(fields))
 	for i, f := range fields {

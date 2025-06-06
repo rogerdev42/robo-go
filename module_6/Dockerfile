@@ -1,36 +1,43 @@
-# Используем официальный Golang образ как базовый
+# Build stage
 FROM golang:1.23-alpine AS builder
 
-# Устанавливаем необходимые пакеты
 RUN apk add --no-cache git ca-certificates tzdata
 
-# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем go mod файлы
+# Copy go mod files
 COPY go.mod go.sum ./
-
-# Загружаем зависимости
 RUN go mod download
 
-# Копируем исходный код
+# Copy source code
 COPY . .
 
-# Собираем приложение
+# Build application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main cmd/server/main.go
 
-# Используем минимальный образ для production
+# Production stage
 FROM alpine:latest
 
-# Добавляем ca-certificates для HTTPS запросов
 RUN apk --no-cache add ca-certificates tzdata
 
 WORKDIR /root/
 
-# Копируем собранное приложение
+# Copy binary from builder
 COPY --from=builder /app/main .
 
-# Копируем миграции
+# Copy migrations if needed
 COPY --from=builder /app/internal/database/migrations ./migrations
 
-# Уст
+# Set environment variables
+ENV PORT=8080
+ENV ENV=production
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
+
+# Run application
+CMD ["./main"]

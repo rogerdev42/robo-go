@@ -5,7 +5,7 @@ import (
 	"module_6/internal/models"
 )
 
-// UserRepository интерфейс для работы с пользователями
+// UserRepository interface for user operations
 type UserRepository interface {
 	Create(ctx context.Context, user *models.User) error
 	GetByID(ctx context.Context, id int) (*models.User, error)
@@ -15,7 +15,7 @@ type UserRepository interface {
 	Delete(ctx context.Context, id int) error
 }
 
-// CategoryRepository интерфейс для работы с категориями
+// CategoryRepository interface for category operations
 type CategoryRepository interface {
 	Create(ctx context.Context, category *models.Category) error
 	GetByID(ctx context.Context, id int) (*models.Category, error)
@@ -26,7 +26,7 @@ type CategoryRepository interface {
 	UpdateNotesCategory(ctx context.Context, categoryID int, userID int) (int64, error)
 }
 
-// NoteRepository интерфейс для работы с заметками
+// NoteRepository interface for note operations
 type NoteRepository interface {
 	Create(ctx context.Context, note *models.Note) error
 	GetByID(ctx context.Context, id int) (*models.Note, error)

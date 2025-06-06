@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// ErrorHandler создает middleware для обработки ошибок
+// ErrorHandler creates middleware for error handling
 func ErrorHandler(log logger.Logger) fiber.ErrorHandler {
 	return func(c fiber.Ctx, err error) error {
 		code := fiber.StatusInternalServerError
@@ -33,7 +33,6 @@ func ErrorHandler(log logger.Logger) fiber.ErrorHandler {
 	}
 }
 
-// getErrorCode возвращает код ошибки по HTTP статусу
 func getErrorCode(status int) string {
 	switch status {
 	case fiber.StatusBadRequest:

@@ -7,28 +7,24 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// LoggingMiddleware создает middleware для логирования HTTP запросов
+// LoggingMiddleware creates middleware for HTTP request logging
 func LoggingMiddleware(log logger.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		start := time.Now()
 
-		// Получаем request ID (может быть nil)
 		reqID := ""
 		if id := c.Locals("requestid"); id != nil {
 			reqID = id.(string)
 		}
 
-		// Добавляем request ID в контекст для всех последующих логов
 		if reqID != "" {
 			c.Locals("logger", log.With(logger.String("request_id", reqID)))
 		} else {
 			c.Locals("logger", log)
 		}
 
-		// Обрабатываем запрос
 		err := c.Next()
 
-		// Логируем результат
 		duration := time.Since(start)
 		status := c.Response().StatusCode()
 

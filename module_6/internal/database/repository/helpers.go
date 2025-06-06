@@ -2,7 +2,7 @@ package repository
 
 import "strings"
 
-// isUniqueViolation проверяет, является ли ошибка нарушением уникальности
+// isUniqueViolation checks if error is a unique constraint violation
 func isUniqueViolation(err error) bool {
 	if err == nil {
 		return false

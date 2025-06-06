@@ -7,17 +7,14 @@ import (
 	"module_6/internal/models"
 )
 
-// categoryRepository реализация репозитория для работы с категориями
 type categoryRepository struct {
 	db *sql.DB
 }
 
-// NewCategoryRepository создает новый экземпляр CategoryRepository
 func NewCategoryRepository(db *sql.DB) CategoryRepository {
 	return &categoryRepository{db: db}
 }
 
-// Create создает новую категорию
 func (r *categoryRepository) Create(ctx context.Context, category *models.Category) error {
 	query := `
 		INSERT INTO categories (user_id, name) 
@@ -38,7 +35,6 @@ func (r *categoryRepository) Create(ctx context.Context, category *models.Catego
 	return nil
 }
 
-// GetByID получает категорию по ID
 func (r *categoryRepository) GetByID(ctx context.Context, id int) (*models.Category, error) {
 	category := &models.Category{}
 	query := `
@@ -68,7 +64,6 @@ func (r *categoryRepository) GetByID(ctx context.Context, id int) (*models.Categ
 	return category, nil
 }
 
-// GetByUserID получает все категории пользователя
 func (r *categoryRepository) GetByUserID(ctx context.Context, userID int) ([]*models.Category, error) {
 	query := `
 		SELECT c.id, c.user_id, c.name, c.created_at,
@@ -109,7 +104,6 @@ func (r *categoryRepository) GetByUserID(ctx context.Context, userID int) ([]*mo
 	return categories, nil
 }
 
-// GetByUserIDAndName получает категорию по имени для конкретного пользователя
 func (r *categoryRepository) GetByUserIDAndName(ctx context.Context, userID int, name string) (*models.Category, error) {
 	category := &models.Category{}
 	query := `
@@ -139,7 +133,6 @@ func (r *categoryRepository) GetByUserIDAndName(ctx context.Context, userID int,
 	return category, nil
 }
 
-// Update обновляет категорию
 func (r *categoryRepository) Update(ctx context.Context, category *models.Category) error {
 	query := `
 		UPDATE categories 
@@ -167,7 +160,6 @@ func (r *categoryRepository) Update(ctx context.Context, category *models.Catego
 	return nil
 }
 
-// Delete удаляет категорию
 func (r *categoryRepository) Delete(ctx context.Context, id int) error {
 	query := `DELETE FROM categories WHERE id = $1`
 
@@ -188,7 +180,6 @@ func (r *categoryRepository) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
-// UpdateNotesCategory обновляет category_id у заметок при удалении категории
 func (r *categoryRepository) UpdateNotesCategory(ctx context.Context, categoryID int, userID int) (int64, error) {
 	query := `
 		UPDATE notes 

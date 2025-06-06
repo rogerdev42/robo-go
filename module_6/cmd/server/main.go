@@ -9,12 +9,12 @@ import (
 )
 
 func main() {
-	// Загружаем .env файл в development режиме
+	// Load .env file in development mode
 	if err := godotenv.Load(); err != nil {
 		fmt.Println("No .env file found")
 	}
 
-	// Создаем приложение
+	// Create application
 	application, err := app.New()
 	if err != nil {
 		fmt.Printf("Failed to initialize application: %v\n", err)
@@ -22,7 +22,7 @@ func main() {
 	}
 	defer application.Close()
 
-	// Запускаем приложение
+	// Start application
 	if err := application.Run(); err != nil {
 		fmt.Printf("Server failed to start: %v\n", err)
 		os.Exit(1)

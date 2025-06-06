@@ -2,7 +2,7 @@ package logger
 
 import "io"
 
-// Logger интерфейс для логирования
+// Logger interface for structured logging
 type Logger interface {
 	Debug(msg string, fields ...Field)
 	Info(msg string, fields ...Field)
@@ -11,20 +11,19 @@ type Logger interface {
 	With(fields ...Field) Logger
 }
 
-// LoggerWithCloser расширенный интерфейс с возможностью закрытия
+// LoggerWithCloser extends Logger with io.Closer
 type LoggerWithCloser interface {
 	Logger
 	io.Closer
 }
 
-// Field представляет поле для структурированного логирования
+// Field represents a structured logging field
 type Field struct {
 	Key   string
 	Value interface{}
 }
 
-// Helper функции для создания полей
-
+// Helper functions for creating fields
 func String(key, value string) Field {
 	return Field{Key: key, Value: value}
 }

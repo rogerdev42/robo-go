@@ -9,17 +9,14 @@ import (
 	"strings"
 )
 
-// noteRepository реализация репозитория для работы с заметками
 type noteRepository struct {
 	db *sql.DB
 }
 
-// NewNoteRepository создает новый экземпляр NoteRepository
 func NewNoteRepository(db *sql.DB) NoteRepository {
 	return &noteRepository{db: db}
 }
 
-// Create создает новую заметку
 func (r *noteRepository) Create(ctx context.Context, note *models.Note) error {
 	query := `
 		INSERT INTO notes (user_id, category_id, title, content) 
@@ -43,7 +40,6 @@ func (r *noteRepository) Create(ctx context.Context, note *models.Note) error {
 	return nil
 }
 
-// GetByID получает заметку по ID с информацией о категории
 func (r *noteRepository) GetByID(ctx context.Context, id int) (*models.Note, error) {
 	note := &models.Note{}
 	query := `
@@ -80,7 +76,6 @@ func (r *noteRepository) GetByID(ctx context.Context, id int) (*models.Note, err
 		return nil, err
 	}
 
-	// Если есть категория, добавляем ее в заметку
 	if category.Valid {
 		note.Category = &models.Category{
 			ID:        int(category.Int64),
@@ -92,9 +87,7 @@ func (r *noteRepository) GetByID(ctx context.Context, id int) (*models.Note, err
 	return note, nil
 }
 
-// GetByUserID получает все заметки пользователя с фильтрацией
 func (r *noteRepository) GetByUserID(ctx context.Context, userID int, filter models.NoteFilter) ([]*models.Note, error) {
-	// Базовый запрос
 	query := `
 		SELECT 
 			n.id, n.user_id, n.category_id, n.title, n.content, 
@@ -108,14 +101,12 @@ func (r *noteRepository) GetByUserID(ctx context.Context, userID int, filter mod
 	args := []interface{}{userID}
 	argCount := 1
 
-	// Добавляем фильтр по категории
 	if filter.CategoryID != nil {
 		argCount++
 		query += fmt.Sprintf(" AND n.category_id = $%d", argCount)
 		args = append(args, *filter.CategoryID)
 	}
 
-	// Добавляем поиск по заголовку и содержимому
 	if filter.Search != "" {
 		argCount++
 		query += fmt.Sprintf(" AND (LOWER(n.title) LIKE LOWER($%d) OR LOWER(n.content) LIKE LOWER($%d))", argCount, argCount)
@@ -123,10 +114,8 @@ func (r *noteRepository) GetByUserID(ctx context.Context, userID int, filter mod
 		args = append(args, searchPattern)
 	}
 
-	// Сортировка
 	query += " ORDER BY n.updated_at DESC"
 
-	// Добавляем лимит и оффсет
 	if filter.Limit > 0 {
 		argCount++
 		query += fmt.Sprintf(" LIMIT $%d", argCount)
@@ -168,7 +157,6 @@ func (r *noteRepository) GetByUserID(ctx context.Context, userID int, filter mod
 			return nil, err
 		}
 
-		// Если есть категория, добавляем ее в заметку
 		if categoryID.Valid {
 			note.Category = &models.Category{
 				ID:        int(categoryID.Int64),
@@ -187,9 +175,7 @@ func (r *noteRepository) GetByUserID(ctx context.Context, userID int, filter mod
 	return notes, nil
 }
 
-// Update обновляет заметку
 func (r *noteRepository) Update(ctx context.Context, note *models.Note) error {
-	// Строим динамический запрос для обновления только переданных полей
 	var setClauses []string
 	var args []interface{}
 	argCount := 0
@@ -206,7 +192,6 @@ func (r *noteRepository) Update(ctx context.Context, note *models.Note) error {
 		args = append(args, note.Content)
 	}
 
-	// category_id может быть NULL
 	argCount++
 	setClauses = append(setClauses, fmt.Sprintf("category_id = $%d", argCount))
 	if note.CategoryID.Valid {
@@ -215,9 +200,6 @@ func (r *noteRepository) Update(ctx context.Context, note *models.Note) error {
 		args = append(args, nil)
 	}
 
-	// updated_at обновляется автоматически триггером
-
-	// Добавляем WHERE условия
 	argCount++
 	args = append(args, note.ID)
 	whereID := argCount
@@ -244,7 +226,6 @@ func (r *noteRepository) Update(ctx context.Context, note *models.Note) error {
 	return nil
 }
 
-// Delete удаляет заметку
 func (r *noteRepository) Delete(ctx context.Context, id int) error {
 	query := `DELETE FROM notes WHERE id = $1`
 
@@ -265,7 +246,6 @@ func (r *noteRepository) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
-// Count возвращает количество заметок пользователя с учетом фильтров
 func (r *noteRepository) Count(ctx context.Context, userID int, filter models.NoteFilter) (int, error) {
 	query := `
 		SELECT COUNT(*) 
@@ -276,14 +256,12 @@ func (r *noteRepository) Count(ctx context.Context, userID int, filter models.No
 	args := []interface{}{userID}
 	argCount := 1
 
-	// Добавляем фильтр по категории
 	if filter.CategoryID != nil {
 		argCount++
 		query += fmt.Sprintf(" AND n.category_id = $%d", argCount)
 		args = append(args, *filter.CategoryID)
 	}
 
-	// Добавляем поиск
 	if filter.Search != "" {
 		argCount++
 		query += fmt.Sprintf(" AND (LOWER(n.title) LIKE LOWER($%d) OR LOWER(n.content) LIKE LOWER($%d))", argCount, argCount)

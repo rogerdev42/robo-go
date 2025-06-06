@@ -1,25 +1,25 @@
 #!/bin/bash
 
-# Загружаем переменные из .env
+# Load variables from .env
 if [ -f .env ]; then
     set -a
     source .env
     set +a
 fi
 
-# Формируем строку подключения
+# Build database URL
 DB_URL="postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable"
 
-# Путь к миграциям
+# Migrations path
 MIGRATIONS_PATH="./internal/database/migrations"
 
-# Проверяем наличие команды migrate
+# Check if migrate command exists
 if ! command -v migrate &> /dev/null; then
     echo "migrate command not found. Please install golang-migrate"
     exit 1
 fi
 
-# Выполняем команду
+# Execute command
 case "$1" in
     up)
         echo "Running migrations up..."

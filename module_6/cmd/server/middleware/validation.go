@@ -11,7 +11,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// ValidateUserCreate middleware для валидации UserCreate
+// ValidateUserCreate middleware for UserCreate validation
 func ValidateUserCreate(log logger.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		var req models.UserCreate
@@ -40,7 +40,7 @@ func ValidateUserCreate(log logger.Logger) fiber.Handler {
 	}
 }
 
-// ValidateUserLogin middleware для валидации UserLogin
+// ValidateUserLogin middleware for UserLogin validation
 func ValidateUserLogin(log logger.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		var req models.UserLogin
@@ -69,7 +69,7 @@ func ValidateUserLogin(log logger.Logger) fiber.Handler {
 	}
 }
 
-// ValidateCategoryCreate middleware для валидации CategoryCreate
+// ValidateCategoryCreate middleware for CategoryCreate validation
 func ValidateCategoryCreate(log logger.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		var req models.CategoryCreate
@@ -98,7 +98,7 @@ func ValidateCategoryCreate(log logger.Logger) fiber.Handler {
 	}
 }
 
-// ValidateCategoryUpdate middleware для валидации CategoryUpdate
+// ValidateCategoryUpdate middleware for CategoryUpdate validation
 func ValidateCategoryUpdate(log logger.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		var req models.CategoryUpdate
@@ -127,7 +127,7 @@ func ValidateCategoryUpdate(log logger.Logger) fiber.Handler {
 	}
 }
 
-// ValidateNoteCreate middleware для валидации NoteCreate
+// ValidateNoteCreate middleware for NoteCreate validation
 func ValidateNoteCreate(log logger.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		var req models.NoteCreate
@@ -156,7 +156,7 @@ func ValidateNoteCreate(log logger.Logger) fiber.Handler {
 	}
 }
 
-// ValidateNoteUpdate middleware для валидации NoteUpdate
+// ValidateNoteUpdate middleware for NoteUpdate validation
 func ValidateNoteUpdate(log logger.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		var req models.NoteUpdate
@@ -185,7 +185,7 @@ func ValidateNoteUpdate(log logger.Logger) fiber.Handler {
 	}
 }
 
-// Функции для получения валидированных данных
+// Getters for validated data
 func GetUserCreate(c fiber.Ctx) models.UserCreate {
 	if req, ok := c.Locals("validated_request").(models.UserCreate); ok {
 		return req
@@ -228,7 +228,7 @@ func GetNoteUpdate(c fiber.Ctx) models.NoteUpdate {
 	return models.NoteUpdate{}
 }
 
-// formatValidationErrors форматирует ошибки валидации
+// formatValidationErrors formats validation errors
 func formatValidationErrors(err error) map[string]interface{} {
 	errors := make(map[string]interface{})
 
