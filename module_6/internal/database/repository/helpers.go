@@ -2,7 +2,7 @@ package repository
 
 import "strings"
 
-// isUniqueViolation checks if error is a unique constraint violation
+// isUniqueViolation checks if error is a PostgreSQL unique constraint violation
 func isUniqueViolation(err error) bool {
 	if err == nil {
 		return false

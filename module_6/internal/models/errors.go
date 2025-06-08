@@ -2,6 +2,7 @@ package models
 
 import "errors"
 
+// Application errors
 var (
 	ErrNotFound           = errors.New("resource not found")
 	ErrAlreadyExists      = errors.New("resource already exists")
@@ -11,10 +12,12 @@ var (
 	ErrInvalidCredentials = errors.New("invalid email or password")
 )
 
+// ErrorResponse represents API error response
 type ErrorResponse struct {
 	Error ErrorDetail `json:"error"`
 }
 
+// ErrorDetail contains error information
 type ErrorDetail struct {
 	Code    string                 `json:"code"`
 	Message string                 `json:"message"`

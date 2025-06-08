@@ -7,23 +7,24 @@ import (
 	"strings"
 )
 
+// Config holds application configuration
 type Config struct {
-	// Server
+	// Server settings
 	Port string
 	Env  string
 
-	// Database
+	// Database settings
 	DBHost     string
 	DBPort     string
 	DBUser     string
 	DBPassword string
 	DBName     string
 
-	// JWT
+	// JWT settings
 	JWTSecret      string
 	JWTExpireHours int
 
-	// Logging
+	// Logging settings
 	LogLevel  string
 	LogFormat string
 	LogOutput string
@@ -61,6 +62,7 @@ func Load() (*Config, error) {
 	return cfg, nil
 }
 
+// validate validates configuration values
 func (c *Config) validate() error {
 	if c.JWTSecret == "" {
 		return fmt.Errorf("JWT_SECRET is required")

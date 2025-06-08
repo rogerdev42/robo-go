@@ -125,17 +125,25 @@ func (a *App) createFiberApp() *fiber.App {
 func (a *App) setupMiddleware() {
 	app := a.fiber
 
+	// Сначала recover для обработки паник
 	app.Use(recover.New(recover.Config{
 		EnableStackTrace: a.config.Env == "development",
 	}))
+
+	// Затем request ID (важно что он идет ДО логирования)
 	app.Use(requestid.New())
+
+	// Логирование должно идти ПОСЛЕ request ID
 	app.Use(middleware.LoggingMiddleware(a.logger))
+
+	// CORS
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 	}))
 
+	// Валидация для конкретных роутов
 	app.Use("/api/auth/signup", middleware.ValidateJSON[models.UserCreate](a.logger))
 	app.Use("/api/auth/signin", middleware.ValidateJSON[models.UserLogin](a.logger))
 

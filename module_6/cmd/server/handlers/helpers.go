@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// getLogger gets logger from context or returns default
+// getLogger extracts logger from context or returns default
 func getLogger(c fiber.Ctx, defaultLogger logger.Logger) logger.Logger {
 	if log, ok := c.Locals("logger").(logger.Logger); ok {
 		return log

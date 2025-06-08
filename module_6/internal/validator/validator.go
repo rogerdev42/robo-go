@@ -13,12 +13,12 @@ var (
 	instance *validator.Validate
 )
 
-// Get returns singleton validator instance
+// Get returns singleton validator instance with custom configurations
 func Get() *validator.Validate {
 	once.Do(func() {
 		instance = validator.New()
 
-		// Use JSON tags as field names in errors
+		// Use JSON tags as field names in validation errors
 		instance.RegisterTagNameFunc(func(fld reflect.StructField) string {
 			name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
 			if name == "-" {
@@ -27,7 +27,7 @@ func Get() *validator.Validate {
 			return name
 		})
 
-		// Custom username validator
+		// Register custom username validation
 		instance.RegisterValidation("username", func(fl validator.FieldLevel) bool {
 			username := fl.Field().String()
 			if len(username) < 3 || len(username) > 50 {
@@ -49,7 +49,7 @@ func Get() *validator.Validate {
 	return instance
 }
 
-// Validate validates a struct
+// Validate validates a struct using the configured validator
 func Validate(s interface{}) error {
 	return Get().Struct(s)
 }

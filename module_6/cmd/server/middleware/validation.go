@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
+// ValidateJSON validates JSON request body and stores validated data in context
 func ValidateJSON[T any](log logger.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		var req T
@@ -41,6 +42,7 @@ func ValidateJSON[T any](log logger.Logger) fiber.Handler {
 	}
 }
 
+// GetValidatedRequest retrieves validated request data from context
 func GetValidatedRequest[T any](c fiber.Ctx) T {
 	if req, ok := c.Locals("validated_request").(T); ok {
 		return req
@@ -49,6 +51,7 @@ func GetValidatedRequest[T any](c fiber.Ctx) T {
 	return zero
 }
 
+// formatValidationErrors converts validator errors to user-friendly messages
 func formatValidationErrors(err error) map[string]interface{} {
 	errors := make(map[string]interface{})
 
