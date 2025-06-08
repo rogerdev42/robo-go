@@ -3,18 +3,17 @@ package handlers
 import (
 	"module_6/cmd/server/middleware"
 	"module_6/internal/logger"
+	"module_6/internal/models"
 	"module_6/internal/services"
 
 	"github.com/gofiber/fiber/v3"
 )
 
-// CategoryHandler handles category operations
 type CategoryHandler struct {
 	*BaseHandler
 	categoryService *services.CategoryService
 }
 
-// NewCategoryHandler creates a new CategoryHandler instance
 func NewCategoryHandler(categoryService *services.CategoryService, log logger.Logger) *CategoryHandler {
 	return &CategoryHandler{
 		BaseHandler:     NewBaseHandler(log),
@@ -22,7 +21,6 @@ func NewCategoryHandler(categoryService *services.CategoryService, log logger.Lo
 	}
 }
 
-// GetAll gets all user categories
 func (h *CategoryHandler) GetAll(c fiber.Ctx) error {
 	userID, err := h.paramsHelper.GetUserID(c)
 	if err != nil {
@@ -39,7 +37,6 @@ func (h *CategoryHandler) GetAll(c fiber.Ctx) error {
 	})
 }
 
-// GetByID gets category by ID
 func (h *CategoryHandler) GetByID(c fiber.Ctx) error {
 	categoryID, err := h.paramsHelper.GetIDParam(c, "id")
 	if err != nil {
@@ -59,14 +56,13 @@ func (h *CategoryHandler) GetByID(c fiber.Ctx) error {
 	return h.responseHelper.Success(c, category)
 }
 
-// Create creates new category
 func (h *CategoryHandler) Create(c fiber.Ctx) error {
 	userID, err := h.paramsHelper.GetUserID(c)
 	if err != nil {
 		return err
 	}
 
-	req := middleware.GetCategoryCreate(c)
+	req := middleware.GetValidatedRequest[models.CategoryCreate](c)
 
 	category, err := h.categoryService.Create(c.Context(), userID, &req)
 	if err != nil {
@@ -76,7 +72,6 @@ func (h *CategoryHandler) Create(c fiber.Ctx) error {
 	return h.responseHelper.Created(c, category)
 }
 
-// Update updates category
 func (h *CategoryHandler) Update(c fiber.Ctx) error {
 	categoryID, err := h.paramsHelper.GetIDParam(c, "id")
 	if err != nil {
@@ -88,7 +83,7 @@ func (h *CategoryHandler) Update(c fiber.Ctx) error {
 		return err
 	}
 
-	req := middleware.GetCategoryUpdate(c)
+	req := middleware.GetValidatedRequest[models.CategoryUpdate](c)
 
 	category, err := h.categoryService.Update(c.Context(), categoryID, userID, &req)
 	if err != nil {
@@ -98,7 +93,6 @@ func (h *CategoryHandler) Update(c fiber.Ctx) error {
 	return h.responseHelper.Success(c, category)
 }
 
-// Delete deletes category
 func (h *CategoryHandler) Delete(c fiber.Ctx) error {
 	categoryID, err := h.paramsHelper.GetIDParam(c, "id")
 	if err != nil {

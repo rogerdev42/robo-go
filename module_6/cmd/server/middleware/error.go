@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"module_6/internal/logger"
 
 	"github.com/gofiber/fiber/v3"
@@ -12,7 +13,8 @@ func ErrorHandler(log logger.Logger) fiber.ErrorHandler {
 		code := fiber.StatusInternalServerError
 		message := "Internal Server Error"
 
-		if e, ok := err.(*fiber.Error); ok {
+		var e *fiber.Error
+		if errors.As(err, &e) {
 			code = e.Code
 			message = e.Message
 		}

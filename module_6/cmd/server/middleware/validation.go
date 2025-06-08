@@ -11,12 +11,12 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-// ValidateUserCreate middleware for UserCreate validation
-func ValidateUserCreate(log logger.Logger) fiber.Handler {
+func ValidateJSON[T any](log logger.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		var req models.UserCreate
+		var req T
 
 		if err := c.Bind().JSON(&req); err != nil {
+			getLogger(c, log).Warn("Invalid JSON body", logger.Error(err))
 			return c.Status(fiber.StatusBadRequest).JSON(models.ErrorResponse{
 				Error: models.ErrorDetail{
 					Code:    "INVALID_JSON",
@@ -26,6 +26,7 @@ func ValidateUserCreate(log logger.Logger) fiber.Handler {
 		}
 
 		if err := validator.Validate(&req); err != nil {
+			getLogger(c, log).Warn("Validation failed", logger.Error(err))
 			return c.Status(fiber.StatusBadRequest).JSON(models.ErrorResponse{
 				Error: models.ErrorDetail{
 					Code:    "VALIDATION_ERROR",
@@ -40,195 +41,14 @@ func ValidateUserCreate(log logger.Logger) fiber.Handler {
 	}
 }
 
-// ValidateUserLogin middleware for UserLogin validation
-func ValidateUserLogin(log logger.Logger) fiber.Handler {
-	return func(c fiber.Ctx) error {
-		var req models.UserLogin
-
-		if err := c.Bind().JSON(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(models.ErrorResponse{
-				Error: models.ErrorDetail{
-					Code:    "INVALID_JSON",
-					Message: "Invalid JSON format",
-				},
-			})
-		}
-
-		if err := validator.Validate(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(models.ErrorResponse{
-				Error: models.ErrorDetail{
-					Code:    "VALIDATION_ERROR",
-					Message: "Validation failed",
-					Details: formatValidationErrors(err),
-				},
-			})
-		}
-
-		c.Locals("validated_request", req)
-		return c.Next()
-	}
-}
-
-// ValidateCategoryCreate middleware for CategoryCreate validation
-func ValidateCategoryCreate(log logger.Logger) fiber.Handler {
-	return func(c fiber.Ctx) error {
-		var req models.CategoryCreate
-
-		if err := c.Bind().JSON(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(models.ErrorResponse{
-				Error: models.ErrorDetail{
-					Code:    "INVALID_JSON",
-					Message: "Invalid JSON format",
-				},
-			})
-		}
-
-		if err := validator.Validate(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(models.ErrorResponse{
-				Error: models.ErrorDetail{
-					Code:    "VALIDATION_ERROR",
-					Message: "Validation failed",
-					Details: formatValidationErrors(err),
-				},
-			})
-		}
-
-		c.Locals("validated_request", req)
-		return c.Next()
-	}
-}
-
-// ValidateCategoryUpdate middleware for CategoryUpdate validation
-func ValidateCategoryUpdate(log logger.Logger) fiber.Handler {
-	return func(c fiber.Ctx) error {
-		var req models.CategoryUpdate
-
-		if err := c.Bind().JSON(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(models.ErrorResponse{
-				Error: models.ErrorDetail{
-					Code:    "INVALID_JSON",
-					Message: "Invalid JSON format",
-				},
-			})
-		}
-
-		if err := validator.Validate(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(models.ErrorResponse{
-				Error: models.ErrorDetail{
-					Code:    "VALIDATION_ERROR",
-					Message: "Validation failed",
-					Details: formatValidationErrors(err),
-				},
-			})
-		}
-
-		c.Locals("validated_request", req)
-		return c.Next()
-	}
-}
-
-// ValidateNoteCreate middleware for NoteCreate validation
-func ValidateNoteCreate(log logger.Logger) fiber.Handler {
-	return func(c fiber.Ctx) error {
-		var req models.NoteCreate
-
-		if err := c.Bind().JSON(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(models.ErrorResponse{
-				Error: models.ErrorDetail{
-					Code:    "INVALID_JSON",
-					Message: "Invalid JSON format",
-				},
-			})
-		}
-
-		if err := validator.Validate(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(models.ErrorResponse{
-				Error: models.ErrorDetail{
-					Code:    "VALIDATION_ERROR",
-					Message: "Validation failed",
-					Details: formatValidationErrors(err),
-				},
-			})
-		}
-
-		c.Locals("validated_request", req)
-		return c.Next()
-	}
-}
-
-// ValidateNoteUpdate middleware for NoteUpdate validation
-func ValidateNoteUpdate(log logger.Logger) fiber.Handler {
-	return func(c fiber.Ctx) error {
-		var req models.NoteUpdate
-
-		if err := c.Bind().JSON(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(models.ErrorResponse{
-				Error: models.ErrorDetail{
-					Code:    "INVALID_JSON",
-					Message: "Invalid JSON format",
-				},
-			})
-		}
-
-		if err := validator.Validate(&req); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(models.ErrorResponse{
-				Error: models.ErrorDetail{
-					Code:    "VALIDATION_ERROR",
-					Message: "Validation failed",
-					Details: formatValidationErrors(err),
-				},
-			})
-		}
-
-		c.Locals("validated_request", req)
-		return c.Next()
-	}
-}
-
-// Getters for validated data
-func GetUserCreate(c fiber.Ctx) models.UserCreate {
-	if req, ok := c.Locals("validated_request").(models.UserCreate); ok {
+func GetValidatedRequest[T any](c fiber.Ctx) T {
+	if req, ok := c.Locals("validated_request").(T); ok {
 		return req
 	}
-	return models.UserCreate{}
+	var zero T
+	return zero
 }
 
-func GetUserLogin(c fiber.Ctx) models.UserLogin {
-	if req, ok := c.Locals("validated_request").(models.UserLogin); ok {
-		return req
-	}
-	return models.UserLogin{}
-}
-
-func GetCategoryCreate(c fiber.Ctx) models.CategoryCreate {
-	if req, ok := c.Locals("validated_request").(models.CategoryCreate); ok {
-		return req
-	}
-	return models.CategoryCreate{}
-}
-
-func GetCategoryUpdate(c fiber.Ctx) models.CategoryUpdate {
-	if req, ok := c.Locals("validated_request").(models.CategoryUpdate); ok {
-		return req
-	}
-	return models.CategoryUpdate{}
-}
-
-func GetNoteCreate(c fiber.Ctx) models.NoteCreate {
-	if req, ok := c.Locals("validated_request").(models.NoteCreate); ok {
-		return req
-	}
-	return models.NoteCreate{}
-}
-
-func GetNoteUpdate(c fiber.Ctx) models.NoteUpdate {
-	if req, ok := c.Locals("validated_request").(models.NoteUpdate); ok {
-		return req
-	}
-	return models.NoteUpdate{}
-}
-
-// formatValidationErrors formats validation errors
 func formatValidationErrors(err error) map[string]interface{} {
 	errors := make(map[string]interface{})
 
@@ -253,4 +73,11 @@ func formatValidationErrors(err error) map[string]interface{} {
 	}
 
 	return errors
+}
+
+func getLogger(c fiber.Ctx, defaultLogger logger.Logger) logger.Logger {
+	if log, ok := c.Locals("logger").(logger.Logger); ok {
+		return log
+	}
+	return defaultLogger
 }

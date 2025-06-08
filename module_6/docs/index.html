@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes API Documentation</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" />
+    <link rel="icon" type="image/png" href="https://unpkg.com/swagger-ui-dist@5.9.0/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="https://unpkg.com/swagger-ui-dist@5.9.0/favicon-16x16.png" sizes="16x16" />
+    <style>
+        html {
+            box-sizing: border-box;
+            overflow: -moz-scrollbars-vertical;
+            overflow-y: scroll;
+        }
+
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            margin: 0;
+            background: #fafafa;
+        }
+
+        .swagger-ui .topbar {
+            background-color: #1b1b1b;
+            border-bottom: 1px solid #d4d4d4;
+        }
+
+        .swagger-ui .topbar .topbar-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+
+        .swagger-ui .topbar .topbar-wrapper .link {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .custom-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .custom-header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .custom-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .info-section {
+            background: white;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .info-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+
+        .auth-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px;
+        }
+
+        .auth-info h4 {
+            color: #856404;
+            margin-top: 0;
+        }
+
+        .endpoint-examples {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px;
+        }
+
+        .endpoint-examples h4 {
+            color: #007bff;
+            margin-top: 0;
+        }
+
+        .endpoint-examples code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="custom-header">
+        <h1>📝 Notes API</h1>
+        <p>REST API for managing personal notes with categorization</p>
+    </div>
+
+    <div class="auth-info">
+        <h4>🔐 Authentication Required</h4>
+        <p>Most endpoints require authentication. To test the API:</p>
+        <ol>
+            <li>First, use <code>/auth/signup</code> or <code>/auth/signin</code> to get a JWT token</li>
+            <li>Click the <strong>"Authorize"</strong> button below and enter: <code>Bearer YOUR_TOKEN_HERE</code></li>
+            <li>Now you can test protected endpoints</li>
+        </ol>
+    </div>
+
+    <div class="info-section">
+        <h3>🚀 Quick Start</h3>
+        <p><strong>Base URL:</strong> <code>http://localhost:8888/api</code></p>
+        <p><strong>Content-Type:</strong> <code>application/json</code></p>
+        
+        <h4>Example Authentication Flow:</h4>
+        <ol>
+            <li><strong>Register:</strong> POST <code>/auth/signup</code> with email, name, password</li>
+            <li><strong>Login:</strong> POST <code>/auth/signin</code> with email, password</li>
+            <li><strong>Use token:</strong> Add <code>Authorization: Bearer &lt;token&gt;</code> header to requests</li>
+        </ol>
+    </div>
+
+    <div class="endpoint-examples">
+        <h4>📋 Common Use Cases</h4>
+        <ul>
+            <li><strong>Create a category:</strong> POST <code>/categories</code> → <code>{"name": "Work"}</code></li>
+            <li><strong>Create a note:</strong> POST <code>/notes</code> → <code>{"title": "Meeting", "content": "Notes...", "category_id": 1}</code></li>
+            <li><strong>List all notes:</strong> GET <code>/notes</code></li>
+            <li><strong>Search notes:</strong> GET <code>/notes?search=meeting&amp;category_id=1</code></li>
+        </ul>
+    </div>
+
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js"></script>
+    <script>
+        window.onload = function() {
+            // Determine the path to swagger.json
+            const pathArray = window.location.pathname.split('/');
+            const docsIndex = pathArray.indexOf('docs');
+            let swaggerJsonUrl;
+            
+            if (docsIndex !== -1) {
+                // We're in /docs/ or /docs/index.html
+                const basePath = pathArray.slice(0, docsIndex + 1).join('/');
+                swaggerJsonUrl = basePath + '/swagger.json';
+            } else {
+                // Fallback to relative path
+                swaggerJsonUrl = './swagger.json';
+            }
+
+            const ui = SwaggerUIBundle({
+                url: swaggerJsonUrl,
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl
+                ],
+                layout: "StandaloneLayout",
+                validatorUrl: null,
+                tryItOutEnabled: true,
+                supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
+                onComplete: function() {
+                    console.log('Swagger UI loaded successfully');
+                },
+                onFailure: function(error) {
+                    console.error('Failed to load Swagger UI:', error);
+                },
+                docExpansion: 'list',
+                apisSorter: 'alpha',
+                operationsSorter: 'alpha',
+                defaultModelsExpandDepth: 2,
+                defaultModelExpandDepth: 2,
+                showExtensions: true,
+                showCommonExtensions: true,
+                requestInterceptor: function(request) {
+                    // Add custom headers or modify requests if needed
+                    return request;
+                },
+                responseInterceptor: function(response) {
+                    // Handle responses if needed
+                    return response;
+                }
+            });
+
+            window.ui = ui;
+        };
+    </script>
+</body>
+</html>

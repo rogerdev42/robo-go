@@ -8,6 +8,7 @@ import (
 	"module_6/internal/config"
 	"module_6/internal/database"
 	"module_6/internal/logger"
+	"module_6/internal/models"
 	"os"
 	"os/signal"
 	"syscall"
@@ -102,31 +103,22 @@ func (a *App) Run() error {
 // Close closes application resources
 func (a *App) Close() error {
 	if a.database != nil {
-		a.database.Close()
+		if err := a.database.Close(); err != nil {
+			a.logger.Error("Failed to close database", logger.Error(err))
+		}
 	}
 	if a.logger != nil {
-		a.logger.Close()
+		if err := a.logger.Close(); err != nil {
+			fmt.Printf("Failed to close logger: %v\n", err)
+		}
 	}
 	return nil
 }
 
 func (a *App) createFiberApp() *fiber.App {
 	return fiber.New(fiber.Config{
-		AppName:           "Notes API v1.0.0",
-		StreamRequestBody: false,
-		ServerHeader:      "Notes API",
-		ErrorHandler:      middleware.ErrorHandler(a.logger),
-		StrictRouting:     false,
-		CaseSensitive:     false,
-		UnescapePath:      false,
-		BodyLimit:         4 * 1024 * 1024,
-		Concurrency:       256 * 1024,
-		ReadTimeout:       5 * time.Second,
-		WriteTimeout:      10 * time.Second,
-		IdleTimeout:       120 * time.Second,
-		ReadBufferSize:    4096,
-		WriteBufferSize:   4096,
-		ReduceMemoryUsage: true,
+		AppName:      "Notes API v1.0.0",
+		ErrorHandler: middleware.ErrorHandler(a.logger),
 	})
 }
 
@@ -143,6 +135,37 @@ func (a *App) setupMiddleware() {
 		AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 	}))
+
+	app.Use("/api/auth/signup", middleware.ValidateJSON[models.UserCreate](a.logger))
+	app.Use("/api/auth/signin", middleware.ValidateJSON[models.UserLogin](a.logger))
+
+	app.Use("/api/categories", func(c fiber.Ctx) error {
+		if c.Method() == "POST" {
+			return middleware.ValidateJSON[models.CategoryCreate](a.logger)(c)
+		}
+		return c.Next()
+	})
+
+	app.Use("/api/categories/*", func(c fiber.Ctx) error {
+		if c.Method() == "PUT" {
+			return middleware.ValidateJSON[models.CategoryUpdate](a.logger)(c)
+		}
+		return c.Next()
+	})
+
+	app.Use("/api/notes", func(c fiber.Ctx) error {
+		if c.Method() == "POST" {
+			return middleware.ValidateJSON[models.NoteCreate](a.logger)(c)
+		}
+		return c.Next()
+	})
+
+	app.Use("/api/notes/*", func(c fiber.Ctx) error {
+		if c.Method() == "PUT" {
+			return middleware.ValidateJSON[models.NoteUpdate](a.logger)(c)
+		}
+		return c.Next()
+	})
 }
 
 func (a *App) setupRoutes(deps *Dependencies) {

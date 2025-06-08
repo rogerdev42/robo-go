@@ -3,18 +3,17 @@ package handlers
 import (
 	"module_6/cmd/server/middleware"
 	"module_6/internal/logger"
+	"module_6/internal/models"
 	"module_6/internal/services"
 
 	"github.com/gofiber/fiber/v3"
 )
 
-// NoteHandler handles note operations
 type NoteHandler struct {
 	*BaseHandler
 	noteService *services.NoteService
 }
 
-// NewNoteHandler creates a new NoteHandler instance
 func NewNoteHandler(noteService *services.NoteService, log logger.Logger) *NoteHandler {
 	return &NoteHandler{
 		BaseHandler: NewBaseHandler(log),
@@ -22,7 +21,6 @@ func NewNoteHandler(noteService *services.NoteService, log logger.Logger) *NoteH
 	}
 }
 
-// GetAll gets all user notes
 func (h *NoteHandler) GetAll(c fiber.Ctx) error {
 	userID, err := h.paramsHelper.GetUserID(c)
 	if err != nil {
@@ -41,7 +39,6 @@ func (h *NoteHandler) GetAll(c fiber.Ctx) error {
 	})
 }
 
-// GetByID gets note by ID
 func (h *NoteHandler) GetByID(c fiber.Ctx) error {
 	noteID, err := h.paramsHelper.GetIDParam(c, "id")
 	if err != nil {
@@ -61,14 +58,13 @@ func (h *NoteHandler) GetByID(c fiber.Ctx) error {
 	return h.responseHelper.Success(c, note)
 }
 
-// Create creates new note
 func (h *NoteHandler) Create(c fiber.Ctx) error {
 	userID, err := h.paramsHelper.GetUserID(c)
 	if err != nil {
 		return err
 	}
 
-	req := middleware.GetNoteCreate(c)
+	req := middleware.GetValidatedRequest[models.NoteCreate](c)
 
 	note, err := h.noteService.Create(c.Context(), userID, &req)
 	if err != nil {
@@ -78,7 +74,6 @@ func (h *NoteHandler) Create(c fiber.Ctx) error {
 	return h.responseHelper.Created(c, note)
 }
 
-// Update updates note
 func (h *NoteHandler) Update(c fiber.Ctx) error {
 	noteID, err := h.paramsHelper.GetIDParam(c, "id")
 	if err != nil {
@@ -90,7 +85,7 @@ func (h *NoteHandler) Update(c fiber.Ctx) error {
 		return err
 	}
 
-	req := middleware.GetNoteUpdate(c)
+	req := middleware.GetValidatedRequest[models.NoteUpdate](c)
 
 	note, err := h.noteService.Update(c.Context(), noteID, userID, &req)
 	if err != nil {
@@ -100,7 +95,6 @@ func (h *NoteHandler) Update(c fiber.Ctx) error {
 	return h.responseHelper.Success(c, note)
 }
 
-// Delete deletes note
 func (h *NoteHandler) Delete(c fiber.Ctx) error {
 	noteID, err := h.paramsHelper.GetIDParam(c, "id")
 	if err != nil {
@@ -117,5 +111,7 @@ func (h *NoteHandler) Delete(c fiber.Ctx) error {
 		return h.responseHelper.HandleServiceError(c, err)
 	}
 
-	return h.responseHelper.NoContent(c)
+	return h.responseHelper.Success(c, fiber.Map{
+		"message": "Category deleted",
+	})
 }

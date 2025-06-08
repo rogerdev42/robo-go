@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"module_6/internal/config"
 	"module_6/internal/models"
 	"strings"
@@ -42,7 +43,7 @@ func JWTProtected(cfg *config.Config) fiber.Handler {
 		})
 
 		if err != nil {
-			if err == jwt.ErrTokenExpired {
+			if errors.Is(err, jwt.ErrTokenExpired) {
 				return c.Status(fiber.StatusUnauthorized).JSON(models.ErrorResponse{
 					Error: models.ErrorDetail{
 						Code:    "TOKEN_EXPIRED",

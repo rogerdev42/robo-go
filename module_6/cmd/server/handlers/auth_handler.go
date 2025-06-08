@@ -3,18 +3,17 @@ package handlers
 import (
 	"module_6/cmd/server/middleware"
 	"module_6/internal/logger"
+	"module_6/internal/models"
 	"module_6/internal/services"
 
 	"github.com/gofiber/fiber/v3"
 )
 
-// AuthHandler handles authentication
 type AuthHandler struct {
 	*BaseHandler
 	authService *services.AuthService
 }
 
-// NewAuthHandler creates a new AuthHandler instance
 func NewAuthHandler(authService *services.AuthService, log logger.Logger) *AuthHandler {
 	return &AuthHandler{
 		BaseHandler: NewBaseHandler(log),
@@ -22,9 +21,8 @@ func NewAuthHandler(authService *services.AuthService, log logger.Logger) *AuthH
 	}
 }
 
-// SignUp handles user registration
 func (h *AuthHandler) SignUp(c fiber.Ctx) error {
-	req := middleware.GetUserCreate(c)
+	req := middleware.GetValidatedRequest[models.UserCreate](c)
 
 	user, token, err := h.authService.SignUp(c.Context(), &req)
 	if err != nil {
@@ -37,9 +35,8 @@ func (h *AuthHandler) SignUp(c fiber.Ctx) error {
 	})
 }
 
-// SignIn handles user login
 func (h *AuthHandler) SignIn(c fiber.Ctx) error {
-	req := middleware.GetUserLogin(c)
+	req := middleware.GetValidatedRequest[models.UserLogin](c)
 
 	user, token, err := h.authService.SignIn(c.Context(), &req)
 	if err != nil {

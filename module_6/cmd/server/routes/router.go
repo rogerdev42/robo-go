@@ -46,16 +46,10 @@ func (r *Router) setupAPIRoutes(
 ) {
 	api := r.app.Group("/api")
 
-	// Auth routes (public)
 	auth := api.Group("/auth")
-
-	auth.Use("/signup", middleware.ValidateUserCreate(r.log))
 	auth.Post("/signup", authHandler.SignUp)
-
-	auth.Use("/signin", middleware.ValidateUserLogin(r.log))
 	auth.Post("/signin", authHandler.SignIn)
 
-	// Protected routes
 	protected := api.Group("/", middleware.JWTProtected(r.cfg))
 	r.setupCategoryRoutes(protected, categoryHandler)
 	r.setupNoteRoutes(protected, noteHandler)
@@ -63,34 +57,18 @@ func (r *Router) setupAPIRoutes(
 
 func (r *Router) setupCategoryRoutes(protected fiber.Router, categoryHandler *handlers.CategoryHandler) {
 	categories := protected.Group("/categories")
-
 	categories.Get("/", categoryHandler.GetAll)
 	categories.Get("/:id", categoryHandler.GetByID)
-
-	categories.Post("/",
-		middleware.ValidateCategoryCreate(r.log),
-		categoryHandler.Create)
-
-	categories.Put("/:id",
-		middleware.ValidateCategoryUpdate(r.log),
-		categoryHandler.Update)
-
+	categories.Post("/", categoryHandler.Create)
+	categories.Put("/:id", categoryHandler.Update)
 	categories.Delete("/:id", categoryHandler.Delete)
 }
 
 func (r *Router) setupNoteRoutes(protected fiber.Router, noteHandler *handlers.NoteHandler) {
 	notes := protected.Group("/notes")
-
 	notes.Get("/", noteHandler.GetAll)
+	notes.Post("/", noteHandler.Create)
 	notes.Get("/:id", noteHandler.GetByID)
-
-	notes.Post("/",
-		middleware.ValidateNoteCreate(r.log),
-		noteHandler.Create)
-
-	notes.Put("/:id",
-		middleware.ValidateNoteUpdate(r.log),
-		noteHandler.Update)
-
+	notes.Put("/:id", noteHandler.Update)
 	notes.Delete("/:id", noteHandler.Delete)
 }
