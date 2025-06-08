@@ -1,0 +1,931 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Notes API",
+    "description": "REST API for managing personal notes with categorization. Each user can create, edit and organize their notes by categories.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "url": "https://github.com/yourusername/notes-api",
+      "email": "support@example.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "host": "localhost:8888",
+  "basePath": "/api",
+  "schemes": ["http", "https"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Type 'Bearer' followed by a space and JWT token. Example: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Health check",
+        "description": "Check if the application is running and healthy",
+        "responses": {
+          "200": {
+            "description": "Application is healthy",
+            "schema": {
+              "$ref": "#/definitions/HealthCheckResponse"
+            }
+          }
+        }
+      }
+    },
+    "/auth/signup": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "User registration",
+        "description": "Register a new user account with email, username and password. Returns JWT token upon successful registration.",
+        "parameters": [
+          {
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "description": "User registration data",
+            "schema": {
+              "$ref": "#/definitions/UserCreate"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "schema": {
+              "$ref": "#/definitions/SignUpResponse"
+            }
+          },
+          "400": {
+            "description": "Validation error - invalid input data",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "409": {
+            "description": "Conflict - email or username already exists",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/auth/signin": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "User login",
+        "description": "Authenticate user with email and password. Returns JWT token upon successful authentication.",
+        "parameters": [
+          {
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "description": "User login credentials",
+            "schema": {
+              "$ref": "#/definitions/UserLogin"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "schema": {
+              "$ref": "#/definitions/SignInResponse"
+            }
+          },
+          "400": {
+            "description": "Validation error - invalid input format",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid email or password",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/categories": {
+      "get": {
+        "tags": ["Categories"],
+        "summary": "Get user categories",
+        "description": "Get all categories for the authenticated user, sorted by creation date (newest first). Each category includes the count of notes in it.",
+        "security": [{"BearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Categories retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/CategoriesResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid JWT token",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Categories"],
+        "summary": "Create category",
+        "description": "Create a new category for the authenticated user. Category name must be unique for the user.",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "description": "Category data",
+            "schema": {
+              "$ref": "#/definitions/CategoryCreate"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Category created successfully",
+            "schema": {
+              "$ref": "#/definitions/Category"
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid JWT token",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "409": {
+            "description": "Conflict - category with this name already exists",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/categories/{id}": {
+      "get": {
+        "tags": ["Categories"],
+        "summary": "Get category by ID",
+        "description": "Get a specific category by ID. Only returns categories that belong to the authenticated user.",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "minimum": 1,
+            "description": "Category ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/Category"
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid category ID",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid JWT token",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "Forbidden - category belongs to another user",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Not found - category does not exist",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Categories"],
+        "summary": "Update category",
+        "description": "Update an existing category. Only the category name can be updated. The new name must be unique for the user.",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "minimum": 1,
+            "description": "Category ID"
+          },
+          {
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "description": "Updated category data",
+            "schema": {
+              "$ref": "#/definitions/CategoryUpdate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category updated successfully",
+            "schema": {
+              "$ref": "#/definitions/Category"
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error or invalid ID",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid JWT token",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "Forbidden - category belongs to another user",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Not found - category does not exist",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "409": {
+            "description": "Conflict - category with this name already exists",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Categories"],
+        "summary": "Delete category",
+        "description": "Delete a category and unlink all its notes. The notes will remain but their category_id will be set to null.",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "minimum": 1,
+            "description": "Category ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category deleted successfully",
+            "schema": {
+              "$ref": "#/definitions/CategoryDeleteResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid category ID",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid JWT token",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "Forbidden - category belongs to another user",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Not found - category does not exist",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/notes": {
+      "get": {
+        "tags": ["Notes"],
+        "summary": "Get user notes",
+        "description": "Get all notes for the authenticated user, sorted by update date (newest first). Supports filtering by category and search.",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "query",
+            "type": "integer",
+            "minimum": 1,
+            "description": "Filter by category ID"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "type": "string",
+            "maxLength": 100,
+            "description": "Search in title and content"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20,
+            "description": "Limit number of results (max 100)"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Offset for pagination"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notes retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/NotesResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid JWT token",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Notes"],
+        "summary": "Create note",
+        "description": "Create a new note for the authenticated user. Category is optional and must belong to the user if specified.",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "description": "Note data",
+            "schema": {
+              "$ref": "#/definitions/NoteCreate"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Note created successfully",
+            "schema": {
+              "$ref": "#/definitions/Note"
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error or invalid category",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid JWT token",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "Forbidden - category belongs to another user",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/notes/{id}": {
+      "get": {
+        "tags": ["Notes"],
+        "summary": "Get note by ID",
+        "description": "Get a specific note by ID. Only returns notes that belong to the authenticated user.",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "minimum": 1,
+            "description": "Note ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Note retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/Note"
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid note ID",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid JWT token",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Not found - note does not exist or belongs to another user",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Notes"],
+        "summary": "Update note",
+        "description": "Update an existing note. All fields are optional. If category_id is 0, the note will be uncategorized.",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "minimum": 1,
+            "description": "Note ID"
+          },
+          {
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "description": "Updated note data",
+            "schema": {
+              "$ref": "#/definitions/NoteUpdate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Note updated successfully",
+            "schema": {
+              "$ref": "#/definitions/Note"
+            }
+          },
+          "400": {
+            "description": "Bad request - validation error, invalid ID, or invalid category",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid JWT token",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "Forbidden - note or category belongs to another user",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Not found - note does not exist",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Notes"],
+        "summary": "Delete note",
+        "description": "Delete a note permanently. Only the owner of the note can delete it.",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "minimum": 1,
+            "description": "Note ID"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Note deleted successfully (no content)"
+          },
+          "400": {
+            "description": "Bad request - invalid note ID",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid JWT token",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Not found - note does not exist or belongs to another user",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "HealthCheckResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "example": "ok"
+        },
+        "time": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2024-01-01T10:00:00Z"
+        }
+      }
+    },
+    "UserCreate": {
+      "type": "object",
+      "required": ["email", "name", "password"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "example": "user@example.com"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 50,
+          "example": "johndoe"
+        },
+        "password": {
+          "type": "string",
+          "minLength": 6,
+          "example": "password123"
+        }
+      }
+    },
+    "UserLogin": {
+      "type": "object",
+      "required": ["email", "password"],
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "example": "user@example.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "password123"
+        }
+      }
+    },
+    "UserResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 1
+        },
+        "email": {
+          "type": "string",
+          "example": "user@example.com"
+        },
+        "name": {
+          "type": "string",
+          "example": "johndoe"
+        }
+      }
+    },
+    "SignUpResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        },
+        "user": {
+          "$ref": "#/definitions/UserResponse"
+        }
+      }
+    },
+    "SignInResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        },
+        "user": {
+          "$ref": "#/definitions/UserResponse"
+        }
+      }
+    },
+    "Category": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 1
+        },
+        "name": {
+          "type": "string",
+          "example": "Work"
+        },
+        "notes_count": {
+          "type": "integer",
+          "example": 5
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2024-01-01T10:00:00Z"
+        }
+      }
+    },
+    "CategoryCreate": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 100,
+          "example": "Personal"
+        }
+      }
+    },
+    "CategoryUpdate": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 100,
+          "example": "Work Projects"
+        }
+      }
+    },
+    "CategoriesResponse": {
+      "type": "object",
+      "properties": {
+        "categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Category"
+          }
+        }
+      }
+    },
+    "CategoryDeleteResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Category deleted"
+        },
+        "affected_notes": {
+          "type": "integer",
+          "example": 5
+        }
+      }
+    },
+    "Note": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 1
+        },
+        "title": {
+          "type": "string",
+          "example": "My First Note"
+        },
+        "content": {
+          "type": "string",
+          "example": "This is the content of my first note"
+        },
+        "category": {
+          "$ref": "#/definitions/Category"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2024-01-01T10:00:00Z"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2024-01-01T10:00:00Z"
+        }
+      }
+    },
+    "NoteCreate": {
+      "type": "object",
+      "required": ["title", "content"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "example": "Meeting Notes"
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "example": "Notes from the team meeting today"
+        },
+        "category_id": {
+          "type": "integer",
+          "minimum": 1,
+          "example": 1
+        }
+      }
+    },
+    "NoteUpdate": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "example": "Updated Meeting Notes"
+        },
+        "content": {
+          "type": "string",
+          "minLength": 1,
+          "example": "Updated notes from the team meeting"
+        },
+        "category_id": {
+          "type": "integer",
+          "example": 2
+        }
+      }
+    },
+    "NotesResponse": {
+      "type": "object",
+      "properties": {
+        "notes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Note"
+          }
+        }
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "$ref": "#/definitions/ErrorDetail"
+        }
+      }
+    },
+    "ErrorDetail": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "VALIDATION_ERROR"
+        },
+        "message": {
+          "type": "string",
+          "example": "Validation failed"
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}
